@@ -1,0 +1,1436 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>老师傅 · 制造业经验智能体 | 可交互 Demo</title>
+<style>
+:root{
+  --bg:#eae4d9;
+  --surface:#fffdf8;
+  --surface-2:#f6f1e7;
+  --ink:#17130f;
+  --ink2:#4a423c;
+  --ink3:#837870;
+  --line:#ddd2c2;
+  --line-2:#cbbda9;
+  --accent:#a8321f;
+  --accent-2:#c4552f;
+  --accent-soft:#f8e9e3;
+  --ok:#2e6b4f;
+  --ok-soft:#e9f2ec;
+  --warn:#96650f;
+  --warn-soft:#fbf1da;
+  --mono:"SF Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --sans:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans SC",sans-serif;
+  --serif:"Songti SC","Source Han Serif SC","Noto Serif SC",Georgia,serif;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;background:var(--bg);color:var(--ink);
+  font-family:var(--sans);font-size:14px;line-height:1.6;
+  -webkit-font-smoothing:antialiased;overflow:hidden;
+}
+button{font-family:inherit;font-size:inherit;color:inherit;cursor:pointer;border:0;background:none}
+input{font-family:inherit;font-size:inherit;color:inherit}
+
+/* ---------- topbar ---------- */
+.topbar{
+  height:58px;display:flex;align-items:center;gap:20px;padding:0 20px;
+  background:var(--surface);border-bottom:1px solid var(--line-2);
+  position:relative;z-index:20;
+}
+.brand{display:flex;align-items:baseline;gap:9px;min-width:0}
+.brand b{font-family:var(--serif);font-size:20px;letter-spacing:.02em;font-weight:800}
+.brand i{font-family:var(--mono);font-size:9px;letter-spacing:.2em;color:var(--ink3);font-style:normal}
+.brand .dot{width:6px;height:6px;background:var(--accent);border-radius:50%;display:inline-block;margin-bottom:3px}
+.ctx{
+  display:flex;gap:14px;align-items:center;font-family:var(--mono);font-size:11px;
+  color:var(--ink2);letter-spacing:.02em;padding-left:20px;border-left:1px solid var(--line);
+  overflow:hidden;white-space:nowrap;flex:1;
+}
+.ctx span{display:flex;gap:5px}
+.ctx em{color:var(--ink3);font-style:normal}
+.ctx b{font-weight:600;color:var(--ink)}
+
+.tools{display:flex;align-items:center;gap:10px}
+.seg{display:flex;border:1px solid var(--line-2);border-radius:2px;overflow:hidden;background:var(--surface)}
+.seg button{padding:6px 11px;font-size:12px;color:var(--ink2);border-right:1px solid var(--line)}
+.seg button:last-child{border-right:0}
+.seg button.on{background:var(--ink);color:#fff}
+.toggle{
+  display:flex;align-items:center;gap:7px;padding:6px 11px;border:1px solid var(--line-2);
+  border-radius:2px;font-size:12px;color:var(--ink2);background:var(--surface);
+}
+.toggle .led{width:7px;height:7px;border-radius:50%;background:var(--ok)}
+.toggle.off .led{background:var(--warn)}
+.toggle.off{color:var(--warn);border-color:var(--warn)}
+.btn-tour{
+  padding:7px 13px;background:var(--accent);color:#fff;border-radius:2px;font-size:12px;letter-spacing:.03em;
+}
+.btn-tour:hover{background:var(--accent-2)}
+.btn-tour:disabled{opacity:.5;cursor:default}
+
+/* ---------- layout ---------- */
+.stage{display:grid;grid-template-columns:392px minmax(0,1fr) 292px;height:calc(100vh - 58px)}
+@media(max-width:1240px){.stage{grid-template-columns:360px minmax(0,1fr)}.side{display:none}}
+@media(max-width:900px){.stage{grid-template-columns:1fr;grid-template-rows:auto auto}.phone{max-height:52vh}.ctx{display:none}}
+
+.col{overflow-y:auto;overflow-x:hidden}
+.col::-webkit-scrollbar{width:9px}
+.col::-webkit-scrollbar-thumb{background:#cfc2ae;border-radius:5px;border:2px solid var(--bg)}
+
+/* ---------- phone ---------- */
+.phone{background:var(--surface);border-right:1px solid var(--line-2);display:flex;flex-direction:column;overflow:hidden}
+.phone-head{padding:14px 16px 10px;border-bottom:1px solid var(--line);background:var(--surface-2)}
+.phone-head .row{display:flex;justify-content:space-between;align-items:center}
+.phone-head h2{margin:0;font-size:13px;font-weight:700;letter-spacing:.02em}
+.phone-head .who{font-family:var(--mono);font-size:10px;color:var(--ink3);letter-spacing:.08em}
+.phone-head p{margin:6px 0 0;font-size:11.5px;color:var(--ink3);line-height:1.5}
+
+.shots{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:12px 16px;border-bottom:1px solid var(--line);background:var(--surface-2)}
+.shot{position:relative;border:1px solid var(--line-2);background:#fff;overflow:hidden;border-radius:2px;padding:0;display:block;aspect-ratio:16/10}
+.shot svg{display:block;width:100%;height:100%}
+.shot span{
+  position:absolute;left:0;right:0;bottom:0;padding:3px 5px;font-size:9.5px;
+  background:rgba(23,19,15,.72);color:#fff;letter-spacing:.02em;text-align:left;line-height:1.35;
+}
+.shot:hover{outline:2px solid var(--accent);outline-offset:-2px}
+.shot.active{outline:2px solid var(--accent);outline-offset:-2px}
+.shot.active::after{content:"";position:absolute;inset:0;box-shadow:inset 0 0 0 2px var(--accent)}
+
+.chat{flex:1;overflow-y:auto;padding:14px 16px 8px;display:flex;flex-direction:column;gap:11px}
+.chat::-webkit-scrollbar{width:8px}
+.chat::-webkit-scrollbar-thumb{background:#ddd2c2;border-radius:4px}
+.msg{max-width:94%;font-size:13px;line-height:1.62}
+.msg .b{padding:9px 12px;border-radius:2px}
+.msg.bot .b{background:var(--surface-2);border-left:2px solid var(--ink3);color:var(--ink)}
+.msg.me{align-self:flex-end}
+.msg.me .b{background:var(--ink);color:#fff}
+.msg .tagline{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;color:var(--ink3);margin-top:5px;text-transform:uppercase}
+.msg.me .tagline{text-align:right}
+.msg .b b{font-weight:700}
+.msg .b .hl{background:#f7e3c8;padding:0 2px}
+.msg.sys{align-self:center;max-width:100%;text-align:center}
+.msg.sys .b{background:none;font-family:var(--mono);font-size:10px;color:var(--ink3);letter-spacing:.06em;padding:2px}
+
+.opts{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.opt{
+  border:1px solid var(--line-2);background:#fff;padding:5px 10px;font-size:12px;border-radius:2px;
+  transition:.12s;
+}
+.opt:hover{border-color:var(--accent);color:var(--accent)}
+.opt.picked{background:var(--accent);border-color:var(--accent);color:#fff}
+
+.composer{border-top:1px solid var(--line);padding:9px 12px 11px;background:var(--surface-2)}
+.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:7px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{
+  white-space:nowrap;font-size:11px;padding:4px 9px;border:1px solid var(--line-2);
+  background:#fff;border-radius:11px;color:var(--ink2);
+}
+.chip:hover{border-color:var(--accent);color:var(--accent)}
+.inputrow{display:flex;gap:7px;align-items:center}
+.inputrow input{
+  flex:1;min-width:0;border:1px solid var(--line-2);background:#fff;padding:8px 11px;border-radius:2px;
+  font-size:12.5px;outline:none;
+}
+.inputrow input:focus{border-color:var(--accent)}
+.inputrow button{
+  width:36px;height:34px;background:var(--accent);color:#fff;border-radius:2px;display:grid;place-items:center;
+  font-size:14px;
+}
+.inputrow button:hover{background:var(--accent-2)}
+
+/* ---------- panel ---------- */
+.panel{padding:20px 26px 40px;position:relative}
+.empty{
+  height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:14px;text-align:center;color:var(--ink3);min-height:60vh;
+}
+.empty h3{font-family:var(--serif);font-size:26px;margin:0;color:var(--ink2);font-weight:700}
+.empty p{margin:0;font-size:13px;max-width:44ch;line-height:1.75}
+.empty .hintrow{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;justify-content:center}
+.empty .hintrow span{
+  font-family:var(--mono);font-size:10.5px;border:1px solid var(--line-2);padding:4px 8px;color:var(--ink3);
+  border-radius:2px;background:var(--surface);
+}
+
+.p-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--line-2)}
+.p-head h1{font-family:var(--serif);font-size:23px;margin:0;font-weight:800;letter-spacing:.01em}
+.p-head .sub{font-family:var(--mono);font-size:10.5px;color:var(--ink3);letter-spacing:.06em;margin-top:5px}
+.badge{
+  font-family:var(--mono);font-size:10px;letter-spacing:.1em;padding:4px 9px;border:1px solid;
+  border-radius:2px;white-space:nowrap;text-transform:uppercase;
+}
+.badge.ok{color:var(--ok);border-color:#b7cfc1;background:var(--ok-soft)}
+.badge.ref{color:var(--accent);border-color:#e0b6aa;background:var(--accent-soft)}
+.badge.deg{color:var(--warn);border-color:#e0cb9c;background:var(--warn-soft)}
+
+.photo-wrap{display:grid;grid-template-columns:250px 1fr;gap:18px;margin-bottom:18px;align-items:start}
+@media(max-width:760px){.photo-wrap{grid-template-columns:1fr}}
+.photo{border:1px solid var(--line-2);background:#fff;padding:0;position:relative;overflow:hidden}
+.photo svg{display:block;width:100%;height:auto}
+.photo .frame{position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 30px rgba(23,19,15,.18)}
+.readout{font-size:12.5px;line-height:1.75}
+.readout .lbl{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;color:var(--ink3);text-transform:uppercase;margin-bottom:3px}
+.readout p{margin:0 0 10px;color:var(--ink2)}
+.readout p:last-child{margin-bottom:0}
+.readout strong{color:var(--ink)}
+
+/* stages */
+.stages{display:flex;flex-direction:column;gap:0;margin:6px 0 18px;border:1px solid var(--line);background:var(--surface)}
+.stage-row{display:flex;align-items:center;gap:11px;padding:10px 14px;border-bottom:1px solid var(--line);font-size:12.5px}
+.stage-row:last-child{border-bottom:0}
+.stage-row .ic{width:16px;height:16px;display:grid;place-items:center;flex:none}
+.stage-row .ic i{width:9px;height:9px;border-radius:50%;border:1.5px solid var(--line-2);display:block}
+.stage-row.done .ic i{background:var(--ok);border-color:var(--ok)}
+.stage-row.run .ic i{border-color:var(--accent);border-top-color:transparent;animation:spin .7s linear infinite}
+.stage-row.run{color:var(--accent);font-weight:600}
+.stage-row .t{flex:1}
+.stage-row .ms{font-family:var(--mono);font-size:10.5px;color:var(--ink3)}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* candidates */
+.sec-title{
+  display:flex;align-items:baseline;gap:9px;margin:20px 0 10px;
+}
+.sec-title h3{margin:0;font-size:13px;font-weight:700;letter-spacing:.02em}
+.sec-title .hint{font-family:var(--mono);font-size:10px;color:var(--ink3);letter-spacing:.05em}
+.sec-title .rule{flex:1;height:1px;background:var(--line)}
+
+.cand{
+  border:1px solid var(--line);background:var(--surface);margin-bottom:7px;overflow:hidden;
+}
+.cand-top{display:flex;align-items:center;gap:12px;padding:11px 14px}
+.cand-top .rank{font-family:var(--mono);font-size:10px;color:var(--ink3);width:16px;flex:none}
+.cand-top .nm{flex:1;font-size:13.5px;font-weight:600}
+.cand-top .pc{font-family:var(--mono);font-size:15px;font-weight:700;color:var(--accent);min-width:48px;text-align:right}
+.bar{height:3px;background:var(--surface-2)}
+.bar i{display:block;height:100%;background:var(--accent);transition:width .45s cubic-bezier(.2,.8,.2,1)}
+.cand-body{padding:0 14px 11px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.cite{
+  font-family:var(--mono);font-size:9.5px;color:var(--ok);background:var(--ok-soft);
+  border:1px solid #bcd4c6;padding:2px 6px;border-radius:2px;letter-spacing:.03em;
+}
+.cite:hover{background:#dcebe2;border-color:var(--ok)}
+.cand-note{font-size:11.5px;color:var(--ink3);flex-basis:100%;margin-top:2px}
+
+.steps{counter-reset:s;margin:0;padding:0;list-style:none;border:1px solid var(--line);background:var(--surface)}
+.steps li{
+  counter-increment:s;display:flex;gap:11px;align-items:flex-start;padding:10px 14px;border-bottom:1px solid var(--line);
+  font-size:12.5px;
+}
+.steps li:last-child{border-bottom:0}
+.steps li::before{
+  content:counter(s);font-family:var(--mono);font-size:9.5px;color:var(--accent);border:1px solid var(--accent);
+  width:17px;height:17px;border-radius:50%;display:grid;place-items:center;flex:none;margin-top:1px;
+}
+.steps .txt{flex:1}
+.steps .meta{display:flex;gap:6px;flex:none}
+.pill{font-family:var(--mono);font-size:9.5px;padding:1px 6px;border-radius:2px;border:1px solid var(--line-2);color:var(--ink3);white-space:nowrap}
+.pill.rev{color:var(--ok);border-color:#bcd4c6;background:var(--ok-soft)}
+.pill.cost{color:var(--warn);border-color:#e0cb9c;background:var(--warn-soft)}
+
+.contra{
+  margin-top:10px;padding:10px 13px;background:var(--warn-soft);border-left:2px solid var(--warn);
+  font-size:12px;color:#6f4c0a;line-height:1.65;
+}
+.contra b{color:#5a3d06}
+
+/* params */
+.params{border:1px solid var(--line);background:var(--surface)}
+.prow{display:flex;justify-content:space-between;gap:14px;padding:8px 14px;border-bottom:1px solid var(--line);font-size:12.5px}
+.prow:last-child{border-bottom:0}
+.prow .k{color:var(--ink3)}
+.prow .v{font-family:var(--mono);font-size:12px;color:var(--ink)}
+.prow .v.mask{color:var(--ink3);letter-spacing:.06em}
+.lock{font-size:10px;color:var(--warn)}
+
+.actions{display:flex;gap:9px;margin-top:20px;flex-wrap:wrap}
+.btn{
+  padding:9px 16px;border:1px solid var(--ink);background:var(--ink);color:#fff;border-radius:2px;
+  font-size:12.5px;letter-spacing:.02em;
+}
+.btn:hover{opacity:.88}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--line-2)}
+.btn.ghost:hover{border-color:var(--ink);opacity:1}
+.btn.accent{background:var(--accent);border-color:var(--accent)}
+.btn:disabled{opacity:.4;cursor:default}
+
+/* refusal */
+.refuse{
+  border:1px solid #e0b6aa;background:var(--accent-soft);padding:16px 18px;margin-top:6px;
+}
+.refuse h3{margin:0 0 7px;font-size:14px;color:#7d2a1d;display:flex;align-items:center;gap:8px}
+.refuse p{margin:0 0 9px;font-size:12.5px;color:#6f2a1e;line-height:1.7}
+.refuse .act{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.refuse .act button{font-size:11.5px;border:1px solid #d7a596;background:#fff;padding:5px 10px;border-radius:2px;color:#7d2a1d}
+.refuse .act button:hover{background:#fdf3ef}
+
+/* quality fail */
+.qfail{border:1px solid #e0cb9c;background:var(--warn-soft);padding:18px 20px}
+.qfail h3{margin:0 0 8px;font-size:15px;color:#6f4c0a}
+.qfail .score{font-family:var(--mono);font-size:11px;color:var(--warn);margin-bottom:10px}
+.qfail ul{margin:0 0 12px;padding-left:17px;font-size:12.5px;color:#6f4c0a;line-height:1.75}
+
+/* workorder */
+.wo{border:1px solid var(--ink);background:#fff;padding:0;margin-top:6px}
+.wo-head{display:flex;justify-content:space-between;align-items:center;padding:10px 15px;border-bottom:1px solid var(--ink);background:var(--surface-2)}
+.wo-head b{font-size:13px;letter-spacing:.06em}
+.wo-head span{font-family:var(--mono);font-size:10px;color:var(--ink3)}
+.wo-body{padding:14px 15px;font-size:12.5px}
+.wo-body .grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px 18px;margin-bottom:12px}
+.wo-body .f{display:flex;gap:7px;font-size:12px}
+.wo-body .f span{color:var(--ink3);min-width:52px}
+.wo-body .f b{font-family:var(--mono);font-size:11.5px}
+.wo-body ol{margin:0;padding-left:17px;font-size:12px;line-height:1.85}
+
+/* toast */
+.toast{
+  position:fixed;left:50%;transform:translate(-50%,20px);bottom:26px;background:var(--ink);color:#fff;
+  padding:11px 18px;border-radius:2px;font-size:12.5px;opacity:0;pointer-events:none;transition:.25s;
+  z-index:80;max-width:min(560px,90vw);box-shadow:0 8px 24px rgba(0,0,0,.22);line-height:1.6;
+}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+
+/* drawer */
+.scrim{position:fixed;inset:0;background:rgba(23,19,15,.34);opacity:0;pointer-events:none;transition:.2s;z-index:40}
+.scrim.on{opacity:1;pointer-events:auto}
+.drawer{
+  position:fixed;top:0;right:0;bottom:0;width:min(520px,94vw);background:var(--surface);
+  border-left:1px solid var(--line-2);transform:translateX(102%);transition:transform .26s cubic-bezier(.2,.8,.2,1);
+  z-index:50;display:flex;flex-direction:column;box-shadow:-14px 0 40px rgba(23,19,15,.16);
+}
+.drawer.on{transform:none}
+.drawer-head{padding:16px 20px;border-bottom:1px solid var(--line-2);display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.drawer-head h3{margin:0;font-size:15px;font-weight:700}
+.drawer-head .meta{font-family:var(--mono);font-size:10px;color:var(--ink3);letter-spacing:.06em;margin-top:5px}
+.drawer-head button{width:26px;height:26px;border:1px solid var(--line-2);display:grid;place-items:center;border-radius:2px;flex:none}
+.drawer-body{flex:1;overflow-y:auto;padding:18px 20px 30px}
+.drawer-body h4{margin:0 0 8px;font-size:11.5px;letter-spacing:.1em;font-family:var(--mono);color:var(--ink3);text-transform:uppercase}
+.json{
+  font-family:var(--mono);font-size:11px;line-height:1.75;background:var(--surface-2);
+  border-left:2px solid var(--accent);padding:12px 14px;white-space:pre-wrap;word-break:break-word;color:var(--ink2);
+  margin-bottom:18px;
+}
+.json .k{color:var(--accent)}
+.json .s{color:var(--ok)}
+.hist{font-size:12px;color:var(--ink2)}
+.hist .h{display:flex;gap:10px;padding:7px 0;border-bottom:1px dashed var(--line)}
+.hist .h:last-child{border-bottom:0}
+.hist .h .v{font-family:var(--mono);font-size:10.5px;color:var(--accent);width:30px;flex:none}
+.hist .h .d{flex:1}
+.hist .h .w{font-family:var(--mono);font-size:10px;color:var(--ink3);flex:none}
+
+/* side */
+.side{background:#efe9de;border-left:1px solid var(--line-2);display:flex;flex-direction:column;overflow:hidden}
+.side-head{padding:13px 15px 9px;display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid var(--line)}
+.side-head h3{margin:0;font-size:11px;letter-spacing:.14em;font-family:var(--mono);color:var(--ink3);text-transform:uppercase}
+.side-head span{font-family:var(--mono);font-size:10px;color:var(--ink3)}
+.cards-list{max-height:44%;overflow-y:auto;padding:8px 10px 12px}
+.kcard{
+  width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);padding:9px 11px;
+  margin-bottom:6px;border-radius:2px;display:block;
+}
+.kcard:hover{border-color:var(--accent)}
+.kcard .t{font-size:12px;font-weight:600;display:flex;justify-content:space-between;gap:8px;align-items:center}
+.kcard .id{font-family:var(--mono);font-size:9.5px;color:var(--ink3);margin-top:3px;letter-spacing:.03em}
+.kcard .v{font-family:var(--mono);font-size:9px;color:var(--ok);border:1px solid #bcd4c6;padding:0 4px;border-radius:2px;background:var(--ok-soft)}
+.kcard.pending .v{color:var(--warn);border-color:#e0cb9c;background:var(--warn-soft)}
+
+.audit{flex:1;overflow-y:auto;padding:10px 12px 20px;border-top:1px solid var(--line)}
+.log{display:flex;gap:7px;padding:5px 0;font-family:var(--mono);font-size:10px;line-height:1.55;border-bottom:1px dotted var(--line)}
+.log .t{color:var(--ink3);flex:none}
+.log .m{flex:1;color:var(--ink2);word-break:break-word}
+.log .m b{color:var(--ink);font-weight:600}
+.log.rej .m b{color:var(--accent)}
+.empty-log{font-size:10.5px;color:var(--ink3);padding:10px 2px;line-height:1.7}
+
+.metrics{display:flex;flex-wrap:wrap;gap:16px;margin-top:26px;padding-top:14px;border-top:1px solid var(--line)}
+.metrics div{font-size:11px;color:var(--ink3)}
+.metrics b{display:block;font-family:var(--mono);font-size:15px;color:var(--ink2)}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand"><span class="dot"></span><b>老师傅</b><i>LAOSHIFU / v0.9</i></div>
+  <div class="ctx">
+    <span><em>工序</em><b id="ctxProc">涂布</b></span>
+    <span><em>机台</em><b id="ctxMach">TB-08</b></span>
+    <span><em>纸种</em><b id="ctxPaper">装饰原纸</b></span>
+    <span><em>班次</em><b>夜班 · 22:40</b></span>
+  </div>
+  <div class="tools">
+    <div class="seg" id="roles">
+      <button data-role="operator" class="on">操作工</button>
+      <button data-role="leader">班组长</button>
+      <button data-role="manager">工艺主管</button>
+      <button data-role="visitor">外部访客</button>
+    </div>
+    <button class="toggle" id="netBtn"><span class="led"></span><span id="netTxt">联网</span></button>
+    <button class="btn-tour" id="tourBtn">一键演示</button>
+  </div>
+</div>
+
+<div class="stage">
+  <!-- ============ phone ============ -->
+  <section class="phone">
+    <div class="phone-head">
+      <div class="row">
+        <h2>现场端 · 工人手机</h2>
+        <span class="who" id="whoLabel">操作工 · 张伟</span>
+      </div>
+      <p>拍照或说话就能问。它只回答有依据的问题。</p>
+    </div>
+
+    <div class="shots" id="shots"></div>
+
+    <div class="chat" id="chat"></div>
+
+    <div class="composer">
+      <div class="chips" id="chips"></div>
+      <div class="inputrow">
+        <input id="ask" placeholder="用一句话问它…" autocomplete="off">
+        <button id="send" title="发送">↑</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ panel ============ -->
+  <section class="panel col" id="panel"></section>
+
+  <!-- ============ side ============ -->
+  <aside class="side">
+    <div class="side-head"><h3>知识卡</h3><span id="cardCount">5 张</span></div>
+    <div class="cards-list" id="cardsList"></div>
+    <div class="side-head"><h3>审计日志</h3><span id="logCount">0</span></div>
+    <div class="audit" id="audit"><div class="empty-log">每次问答都会记录：谁、问了什么、用了哪几张卡、是否拒答。可导出给质量部门。</div></div>
+  </aside>
+</div>
+
+<div class="scrim" id="scrim"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-head">
+    <div><h3 id="dTitle">知识卡</h3><div class="meta" id="dMeta"></div></div>
+    <button id="dClose">✕</button>
+  </div>
+  <div class="drawer-body" id="dBody"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================================================
+   接真能力的三个替换点（24 小时现场照着改）
+   1) diagnose()  —— 把 setTimeout 剧本换成真实调用：
+      POST /skill/master.see   {image, process, paper}  -> visual, quality_score
+      POST /skill/master.diagnose {visual, clarify}     -> candidates[], citations[]
+      返回结构必须自带 citations，否则走 refused。
+   2) askText()   —— 换成本地检索 + 澄清决策：
+      if (topScore < 0.35) reject()  ->  与现在 refuse() 同样的出口
+   3) doFeedback() —— 换成写回：
+      PATCH /skill/master.act {workorder, cause}  ->  knowledge_card.version++
+   其余（权限脱敏、审计日志、处置单、降级条）逻辑可直接复用。
+   =========================================================
+
+/* =========================================================
+   数据层
+   ========================================================= */
+const ROLES = {
+  operator: { name:'操作工 · 张伟', mask:['solid','angle','cost','customer'] },
+  leader:   { name:'班组长 · 李强', mask:['cost','customer'] },
+  manager:  { name:'工艺主管 · 王工', mask:[] },
+  visitor:  { name:'外部访客 · 客户审厂', mask:['all'] }
+};
+
+const CARDS = {
+  kc_tb_0012: {
+    id:'kc_tb_0012', version:3, status:'approved',
+    title:'涂布工序条带状白点',
+    scope:{ process:'涂布', machine:'TB-08', paper:'装饰原纸' },
+    symptom:'直径 0.3–0.8mm 白点，沿幅宽呈 3 条带状分布，集中在操作侧 40% 区域；边缘锐利，非喷溅状。换桶后 2 小时内高发。',
+    causes:[
+      { name:'涂料颗粒团聚', prior:0.62, evidence:['WO-2311-047','WO-2403-112'] },
+      { name:'刮刀磨损', prior:0.24, evidence:['PC-TB-08#3'] },
+      { name:'烘缸表面结垢', prior:0.14, evidence:['WO-2308-019'] }
+    ],
+    checks:[
+      { order:1, action:'停机目视刮刀刃口，看是否有缺口或挂料', minutes:5, cost:'low', reversible:true },
+      { order:2, action:'检查涂料过滤网压差，超过 0.15MPa 需换网', minutes:10, cost:'low', reversible:true },
+      { order:3, action:'烘缸表面取样，观察是否有硬质结垢层', minutes:40, cost:'high', reversible:false }
+    ],
+    contra:'若白点边缘发虚、呈雾状扩散，优先查水分与干燥曲线，而不是涂料。',
+    source:{ type:'master_oral', by:'张师傅（38 年）', at:'2026-11-20' },
+    history:[
+      { v:3, d:'补充「换桶后 2 小时内高发」的时间特征', by:'王工', at:'11-21' },
+      { v:2, d:'关联工单 WO-2403-112，涂料团聚先验 0.55 → 0.62', by:'系统', at:'11-18' },
+      { v:1, d:'张师傅口述采集，首版', by:'张师傅', at:'11-20' }
+    ]
+  },
+  kc_tb_0007: {
+    id:'kc_tb_0007', version:2, status:'approved',
+    title:'刮刀磨损的刃口特征',
+    scope:{ process:'涂布', machine:'TB-08/TB-11', paper:'通用' },
+    symptom:'白点沿横幅呈连续细线，宽度一致，随刮刀周长周期性重复。',
+    causes:[ { name:'刮刀磨损', prior:0.81, evidence:['PC-TB-08#3','WO-2310-088'] } ],
+    checks:[ { order:1, action:'停机手感检查刃口，或用放大镜看缺口', minutes:5, cost:'low', reversible:true } ],
+    contra:'若线条间距不等于刮刀周长，则不是刮刀问题。',
+    source:{ type:'process_card', by:'工艺科 PC-TB-08', at:'2025-06-01' },
+    history:[ { v:2, d:'补充「间距 = 刮刀周长」判别条件', by:'王工', at:'11-10' } ]
+  },
+  kc_tb_0019: {
+    id:'kc_tb_0019', version:1, status:'approved',
+    title:'烘缸表面结垢',
+    scope:{ process:'涂布', machine:'TB-08', paper:'装饰原纸' },
+    symptom:'白点分布无规律，多出现在烘缸接触面一侧，伴随局部光泽差异。',
+    causes:[ { name:'烘缸表面结垢', prior:0.7, evidence:['WO-2308-019'] } ],
+    checks:[ { order:1, action:'停机检查烘缸表面，取样观察硬质层', minutes:40, cost:'high', reversible:false } ],
+    contra:'若停机后白点消失、复机重现，优先怀疑结垢而非涂料。',
+    source:{ type:'workorder', by:'工单 WO-2308-019', at:'2026-08-19' },
+    history:[ { v:1, d:'由工单沉淀，首版', by:'系统', at:'08-19' } ]
+  },
+  kc_rw_0031: {
+    id:'kc_rw_0031', version:2, status:'approved',
+    title:'复卷斜向皱褶',
+    scope:{ process:'复卷', machine:'RW-02', paper:'食品包装纸' },
+    symptom:'斜向细皱纹，与卷取方向约 15°，间距 8–15mm，集中在幅宽中部。',
+    causes:[
+      { name:'张力控制不稳', prior:0.55, evidence:['WO-2411-006'] },
+      { name:'纸幅水分不均', prior:0.28, evidence:['PC-RW-02#5'] },
+      { name:'导辊平行度偏差', prior:0.17, evidence:['WO-2405-033'] }
+    ],
+    checks:[
+      { order:1, action:'调取张力曲线，看是否有周期性抖动', minutes:3, cost:'low', reversible:true },
+      { order:2, action:'测横幅水分，看两侧偏差是否超过 1.5%', minutes:15, cost:'low', reversible:true },
+      { order:3, action:'校导辊平行度，误差需小于 0.05mm/m', minutes:60, cost:'high', reversible:false }
+    ],
+    contra:'若皱褶只在换卷后头 200 米出现，优先怀疑张力建立过程，而非导辊。',
+    source:{ type:'master_oral', by:'陈师傅（29 年）', at:'2026-11-18' },
+    history:[ { v:2, d:'补充换卷头 200 米判别条件', by:'陈师傅', at:'11-18' } ]
+  },
+  kc_rw_0035: {
+    id:'kc_rw_0035', version:1, status:'approved',
+    title:'张力曲线判读要点',
+    scope:{ process:'复卷', machine:'RW-02', paper:'通用' },
+    symptom:'张力曲线在 3–5 秒周期内出现 ±8% 以上波动。',
+    causes:[ { name:'张力控制不稳', prior:0.9, evidence:['WO-2411-006'] } ],
+    checks:[ { order:1, action:'导出张力曲线，标记波动周期与幅度', minutes:3, cost:'low', reversible:true } ],
+    contra:'环境温度骤变也会引起张力漂移，需结合车间温度记录判断。',
+    source:{ type:'process_card', by:'工艺科 PC-RW-02', at:'2025-11-02' },
+    history:[ { v:1, d:'首版', by:'工艺科', at:'11-02' } ]
+  }
+};
+
+const CASES = {
+  A: {
+    key:'A', name:'涂布 · 条带白点', chatLabel:'条带白点', paper:'装饰原纸', machine:'TB-08', process:'涂布',
+    quality:'good', qualityScore:0.94,
+    visual:'白点直径 0.3–0.8mm，沿幅宽呈 3 条带状分布，集中在操作侧 40% 区域；边缘锐利，非喷溅状。与知识卡 kc_tb_0012 的症状描述吻合度 0.91。',
+    cards:['kc_tb_0012','kc_tb_0007','kc_tb_0019'],
+    clarify:{
+      q:'先确认一个前提：这批涂料是今天新开的桶吗？',
+      hint:'这个信息会明显改变原因排序。',
+      opts:[
+        { k:'new', t:'今天新开的桶', delta:{ '涂料颗粒团聚':+12, '刮刀磨损':-4, '烘缸表面结垢':-8 } },
+        { k:'old', t:'昨天剩下的', delta:{ '涂料颗粒团聚':-10, '刮刀磨损':-2, '烘缸表面结垢':+12 } },
+        { k:'na',  t:'不确定', delta:{} }
+      ]
+    },
+    base:[
+      { name:'涂料颗粒团聚', prior:62, note:'换桶后 2 小时内高发，与现场时间吻合', cites:['kc_tb_0012','WO-2311-047','WO-2403-112'] },
+      { name:'刮刀磨损', prior:24, note:'需确认白点是否沿横幅周期性重复', cites:['kc_tb_0007','PC-TB-08#3'] },
+      { name:'烘缸表面结垢', prior:14, note:'若停机消失、复机重现，则优先级上调', cites:['kc_tb_0019','WO-2308-019'] }
+    ],
+    contra:'若白点边缘发虚、呈雾状扩散，优先查水分与干燥曲线，而不是涂料。',
+    params:[
+      { k:'涂料固含量', v:'58.0%', key:'solid' },
+      { k:'刮刀角度', v:'22°', key:'angle' },
+      { k:'车速', v:'420 m/min', key:null },
+      { k:'停机成本（小时）', v:'¥ 12,800', key:'cost' },
+      { k:'客户', v:'华誉纸业', key:'customer' }
+    ],
+    wo:{ no:'WO-2611-0341', line:'涂布 TB-08', assignee:'李强（班组长）' }
+  },
+  B: {
+    key:'B', name:'复卷 · 斜向皱褶', chatLabel:'斜向皱褶', paper:'食品包装纸', machine:'RW-02', process:'复卷',
+    quality:'good', qualityScore:0.89,
+    visual:'斜向细皱纹，与卷取方向约 15°，间距 8–15mm，集中在幅宽中部 60% 区域。与 kc_rw_0031 吻合度 0.87。',
+    cards:['kc_rw_0031','kc_rw_0035'],
+    clarify:{
+      q:'皱褶是不是只在换卷后头 200 米出现？',
+      hint:'这决定先查张力建立还是先查导辊。',
+      opts:[
+        { k:'yes', t:'只有换卷后一段', delta:{ '张力控制不稳':+20, '导辊平行度偏差':-12, '纸幅水分不均':-6 } },
+        { k:'no',  t:'整卷都有', delta:{ '张力控制不稳':-22, '导辊平行度偏差':+24, '纸幅水分不均':+2 } },
+        { k:'na',  t:'不确定', delta:{} }
+      ]
+    },
+    base:[
+      { name:'张力控制不稳', prior:55, note:'斜向皱褶是典型张力波动特征', cites:['kc_rw_0031','WO-2411-006'] },
+      { name:'纸幅水分不均', prior:28, note:'需测横幅水分，两侧偏差 >1.5% 则上调', cites:['kc_rw_0031','PC-RW-02#5'] },
+      { name:'导辊平行度偏差', prior:17, note:'整卷都有皱褶时应优先排查', cites:['kc_rw_0031','WO-2405-033'] }
+    ],
+    contra:'若皱褶只在换卷后头 200 米出现，优先怀疑张力建立过程，而非导辊。',
+    params:[
+      { k:'卷取张力设定', v:'320 N/m', key:'solid' },
+      { k:'压辊压力', v:'0.42 MPa', key:'angle' },
+      { k:'车速', v:'680 m/min', key:null },
+      { k:'停机成本（小时）', v:'¥ 9,600', key:'cost' },
+      { k:'客户', v:'江南食品包装', key:'customer' }
+    ],
+    wo:{ no:'WO-2611-0342', line:'复卷 RW-02', assignee:'李强（班组长）' }
+  },
+  C: {
+    key:'C', name:'涂布 · 照片模糊', chatLabel:'纸面有白点，但没拍清楚', paper:'装饰原纸', machine:'TB-08', process:'涂布',
+    quality:'bad', qualityScore:0.31
+  }
+};
+
+/* =========================================================
+   状态
+   ========================================================= */
+const S = {
+  role:'operator',
+  online:true,
+  activeCase:null,
+  answered:false,
+  answerKey:null,
+  result:null,
+  workorder:null,
+  feedback:null,
+  pending:[],
+  audit:[],
+  busy:false,
+  cardVersions:{},
+  priors:{}
+};
+Object.keys(CARDS).forEach(k=>{ S.cardVersions[k]=CARDS[k].version; });
+
+const $ = s=>document.querySelector(s);
+const sleep = ms=>new Promise(r=>setTimeout(r,ms));
+
+/* =========================================================
+   缺陷图（内联 SVG，无外部资源）
+   ========================================================= */
+let uid=0;
+function paperBase(id, dark){
+  return `
+  <defs>
+    <linearGradient id="g${id}" x1="0" y1="0" x2="0.4" y2="1">
+      <stop offset="0" stop-color="#fbf7ef"/><stop offset="0.55" stop-color="#f1e9db"/><stop offset="1" stop-color="#e4d8c4"/>
+    </linearGradient>
+    <filter id="n${id}"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" seed="${id}"/>
+      <feColorMatrix type="saturate" values="0"/><feComponentTransfer><feFuncA type="linear" slope="0.14"/></feComponentTransfer></filter>
+    <radialGradient id="v${id}" cx="0.5" cy="0.45" r="0.75">
+      <stop offset="0.55" stop-color="rgba(0,0,0,0)"/><stop offset="1" stop-color="rgba(60,45,30,0.32)"/>
+    </radialGradient>
+  </defs>
+  <rect width="320" height="200" fill="url(#g${id})"/>
+  <rect width="320" height="200" filter="url(#n${id})" opacity="0.75"/>
+  <g opacity="0.10" stroke="#8d7a5e" stroke-width="0.6">
+    <path d="M0 40 H320 M0 80 H320 M0 120 H320 M0 160 H320"/>
+  </g>`;
+}
+function svgDots(){
+  const id=++uid;
+  let pts='';
+  const bands=[{x:26,w:52},{x:120,w:58},{x:214,w:52}];
+  let r=7;
+  const rnd=()=>{ r=(r*9301+49297)%233280; return r/233280; };
+  bands.forEach(b=>{
+    for(let i=0;i<46;i++){
+      const cx=b.x+rnd()*b.w, cy=8+rnd()*184, rr=0.7+rnd()*1.7;
+      const op=0.45+rnd()*0.55;
+      pts+=`<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${rr.toFixed(2)}" fill="#fffdf6" opacity="${op.toFixed(2)}"/>`;
+    }
+  });
+  return `<svg viewBox="0 0 320 200" preserveAspectRatio="xMidYMid slice">${paperBase(id)}
+    <g>${pts}</g>
+    <rect width="320" height="200" fill="url(#v${id})"/>
+    <rect y="188" width="320" height="12" fill="#2b241c" opacity="0.55"/>
+  </svg>`;
+}
+function svgWrinkles(){
+  const id=++uid;
+  let p='';
+  for(let i=0;i<26;i++){
+    const y=10+i*7.4;
+    p+=`<path d="M${10+i*1.6} ${y} Q 160 ${y-9-i%3*2} ${310-i*1.2} ${y+3}" 
+        fill="none" stroke="#b9a486" stroke-width="${(0.6+ (i%4)*0.22).toFixed(2)}" opacity="${(0.5+(i%3)*0.14).toFixed(2)}"/>`;
+  }
+  return `<svg viewBox="0 0 320 200" preserveAspectRatio="xMidYMid slice">${paperBase(id)}
+    <g transform="rotate(-15 160 100)">${p}</g>
+    <rect width="320" height="200" fill="url(#v${id})"/>
+    <rect y="188" width="320" height="12" fill="#2b241c" opacity="0.55"/>
+  </svg>`;
+}
+function svgBlur(){
+  const id=++uid;
+  let pts='';
+  for(let i=0;i<12;i++){
+    pts+=`<circle cx="${60+i*17}" cy="${60+ (i%5)*22}" r="4" fill="#fffdf6" opacity="0.55"/>`;
+  }
+  return `<svg viewBox="0 0 320 200" preserveAspectRatio="xMidYMid slice">
+    <defs><filter id="b${id}"><feGaussianBlur stdDeviation="5.2"/></filter></defs>
+    <g filter="url(#b${id})">
+      <rect width="320" height="200" fill="#e8dfd0"/>
+      <g>${pts}</g>
+    </g>
+    <rect width="320" height="200" fill="rgba(120,105,85,0.18)"/>
+    <rect y="188" width="320" height="12" fill="#2b241c" opacity="0.3"/>
+  </svg>`;
+}
+
+/* =========================================================
+   渲染：缩略图 / 输入提示 / 知识卡 / 审计
+   ========================================================= */
+function renderShots(){
+  const items=[
+    { k:'A', label:'涂布 · 白点', svg:svgDots() },
+    { k:'B', label:'复卷 · 皱褶', svg:svgWrinkles() },
+    { k:'C', label:'涂布 · 模糊', svg:svgBlur() }
+  ];
+  $('#shots').innerHTML = items.map(i=>`
+    <button class="shot ${S.activeCase===i.k?'active':''}" data-case="${i.k}">
+      ${i.svg}<span>${i.label}</span>
+    </button>`).join('');
+  $('#shots').querySelectorAll('.shot').forEach(b=>{
+    b.onclick=()=>{ if(!S.busy) pickCase(b.dataset.case); };
+  });
+}
+
+const CHIPS=[
+  '这批白点是不是涂料的问题？',
+  '换了分散剂会不会导致白点？',
+  '白点会不会影响食品接触安全？',
+  '刮刀多久检查一次？'
+];
+function renderChips(){
+  $('#chips').innerHTML = CHIPS.map(c=>`<button class="chip">${c}</button>`).join('');
+  $('#chips').querySelectorAll('.chip').forEach(b=>{
+    b.onclick=()=>{ if(S.busy) return; askText(b.textContent); };
+  });
+}
+
+function renderCards(){
+  const pend = S.pending.map(p=>({
+    id:p.id, version:1, status:'pending', title:p.title, pending:true
+  }));
+  const all = [...Object.values(CARDS), ...pend];
+  $('#cardsList').innerHTML = all.map(c=>`
+    <button class="kcard ${c.pending?'pending':''}" data-card="${c.id}">
+      <div class="t"><span>${c.title}</span><span class="v">v${S.cardVersions[c.id]||c.version}${c.pending?' 待审':''}</span></div>
+      <div class="id">${c.id}${c.pending?' · 由拒答生成':''}</div>
+    </button>`).join('');
+  $('#cardsList').querySelectorAll('.kcard').forEach(b=>{
+    b.onclick=()=>openCard(b.dataset.card);
+  });
+  $('#cardCount').textContent = all.length + ' 张';
+}
+
+function log(type, text){
+  const d=new Date();
+  const t=`${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`;
+  S.audit.unshift({ t, type, text });
+  $('#audit').innerHTML = S.audit.slice(0,40).map(l=>`
+    <div class="log ${l.type==='rej'?'rej':''}"><span class="t">${l.t}</span><span class="m">${l.text}</span></div>
+  `).join('');
+  $('#logCount').textContent = S.audit.length;
+}
+
+function toast(msg, ms=2600){
+  const el=$('#toast'); el.innerHTML=msg; el.classList.add('on');
+  clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove('on'), ms);
+}
+
+/* =========================================================
+   聊天
+   ========================================================= */
+function chatEl(html){ const d=document.createElement('div'); d.innerHTML=html; return d.firstElementChild; }
+function clearChat(){ $('#chat').innerHTML=''; }
+function scrollChat(){ const c=$('#chat'); c.scrollTop=c.scrollHeight; }
+
+function bot(html, tag='老师傅'){
+  const el=chatEl(`<div class="msg bot"><div class="b">${html}</div><div class="tagline">${tag}</div></div>`);
+  $('#chat').appendChild(el); scrollChat(); return el;
+}
+function me(text){
+  const el=chatEl(`<div class="msg me"><div class="b">${text}</div><div class="tagline">我 · ${ROLES[S.role].name.split(' · ')[0]}</div></div>`);
+  $('#chat').appendChild(el); scrollChat(); return el;
+}
+function sys(text){
+  const el=chatEl(`<div class="msg sys"><div class="b">${text}</div></div>`);
+  $('#chat').appendChild(el); scrollChat(); return el;
+}
+
+/* =========================================================
+   主流程
+   ========================================================= */
+function resetRun(){
+  S.activeCase=null; S.answered=false; S.answerKey=null; S.result=null; S.workorder=null; S.busy=false;
+}
+
+async function pickCase(k){
+  const c=CASES[k];
+  S.activeCase=k; S.answered=false; S.answerKey=null; S.result=null; S.workorder=null;
+  S.busy=true;
+  renderShots();
+  $('#ctxProc').textContent=c.process;
+  $('#ctxMach').textContent=c.machine;
+  $('#ctxPaper').textContent=c.paper;
+  clearChat();
+  me('拍了张照片，' + (c.chatLabel || c.name.split(' · ')[1]) + '，帮我看下。');
+  sys(`已选：${c.name} · ${c.machine} · ${c.paper}`);
+  log('ok', `上传照片 <b>${c.name}</b>`);
+  await diagnose(c);
+}
+
+async function diagnose(c){
+  const stages=[
+    { t:'拍摄质量校验', ms:'120ms' },
+    { t:'检索知识卡', ms:'340ms' },
+    { t:'强制引用校验', ms:'180ms' }
+  ];
+  renderPanelStages(c, stages, 0);
+  bot('收到照片，先校验画质…');
+  await sleep(650);
+
+  if(c.quality==='bad'){
+    stages[0].ms='96ms';
+    renderPanelStages(c, stages, 1);
+    await sleep(500);
+    S.busy=false;
+    renderQualityFail(c);
+    bot('这张照片太糊了，我判读不了。<b>请靠近到 20cm、开闪光灯、正对光面重拍</b>，或者直接把缺陷部位放大拍一张。');
+    log('rej','拍摄质量 <b>0.31</b>，拒绝判读，已给重拍指引');
+    return;
+  }
+
+  stages[0].ms='120ms'; renderPanelStages(c, stages, 1);
+  bot(`画质 <b>${c.qualityScore.toFixed(2)}</b>，可用。正在检索知识卡…`);
+  await sleep(760);
+  stages[1].ms='340ms'; renderPanelStages(c, stages, 2);
+  await sleep(620);
+  stages[2].ms='180ms'; renderPanelStages(c, stages, 3);
+  bot('命中 <b>3 张</b>知识卡，发现 1 个关键前提需要确认。');
+  await sleep(420);
+
+  log('ok',`检索命中 <b>${c.cards.length + 1}</b> 张卡 · 置信度 ${c.qualityScore.toFixed(2)}`);
+  askClarify(c);
+}
+
+function askClarify(c){
+  S.busy=false;
+  const el = bot(c.clarify.q + `<div class="opts" id="clarOpts"></div>`, '需要确认');
+  const box = el.querySelector('#clarOpts');
+  c.clarify.opts.forEach(o=>{
+    const b=document.createElement('button');
+    b.className='opt'; b.textContent=o.t;
+    b.onclick=async ()=>{
+      if(S.answered) return;
+      box.querySelectorAll('.opt').forEach(x=>x.classList.remove('picked'));
+      b.classList.add('picked');
+      S.answered=true; S.answerKey=o.k;
+      me(o.t);
+      log('ok',`澄清回答：<b>${o.t}</b>`);
+      await sleep(220);
+      buildResult(c, o.delta);
+    };
+    box.appendChild(b);
+  });
+  scrollChat();
+}
+
+function buildResult(c, delta){
+  const res = c.base.map(b=>{
+    const d = delta && delta[b.name] ? delta[b.name] : 0;
+    return { ...b, p: Math.max(2, Math.min(96, b.prior + d)), delta:d };
+  }).sort((a,b)=>b.p-a.p);
+  const sum = res.reduce((s,x)=>s+x.p,0);
+  res.forEach(x=>{ x.p = Math.round(x.p/sum*100); });
+  S.result = { case:c, items:res };
+
+  bot(`按涂料是${S.answerKey==='new'?'新开的桶':S.answerKey==='old'?'昨天剩的':'情况不明'}重新排序了。以下三条都挂了原文出处，点绿色标签可以查。`);
+  renderResult();
+  log('ok','输出 <b>3 条候选原因</b>，全部带 citation，校验通过');
+}
+
+/* ---------- 面板：空态 ---------- */
+function renderEmpty(){
+  $('#panel').innerHTML = `
+  <div class="empty">
+    <h3>选一张缺陷照片</h3>
+    <p>左侧是工人的手机。拍照、说话，就能拿到候选原因、排查顺序和处置单。<br>
+    每条结论都能点开原始工单——这是它敢被车间使用的唯一原因。</p>
+    <div class="hintrow">
+      <span>① 拍照诊断</span><span>② 主动澄清</span><span>③ 强制引用</span><span>④ 拒答边界</span><span>⑤ 权限差异</span>
+    </div>
+  </div>`;
+}
+
+/* ---------- 面板：阶段 ---------- */
+function renderPanelStages(c, stages, done){
+  const photo = c.key==='A'?svgDots():c.key==='B'?svgWrinkles():svgBlur();
+  $('#panel').innerHTML = `
+  <div class="p-head">
+    <div>
+      <h1>${c.name}</h1>
+      <div class="sub">${c.process} · ${c.machine} · ${c.paper} · 夜班 22:40</div>
+    </div>
+    <span class="badge deg">判读中</span>
+  </div>
+  <div class="photo-wrap">
+    <div class="photo">${photo}<div class="frame"></div></div>
+    <div class="readout">
+      <div class="lbl">Pipeline</div>
+      <div class="stages">
+        ${stages.map((s,i)=>`
+          <div class="stage-row ${i<done?'done':i===done?'run':''}">
+            <span class="ic"><i></i></span>
+            <span class="t">${s.t}</span>
+            <span class="ms">${i<done?s.ms:'—'}</span>
+          </div>`).join('')}
+      </div>
+      <p style="font-size:12px;color:#837870;margin:0">只在有依据时才给结论。任何一句没有出处的判断，会被校验环节直接删掉。</p>
+    </div>
+  </div>`;
+}
+
+/* ---------- 面板：画质不合格 ---------- */
+function renderQualityFail(c){
+  const photo=svgBlur();
+  $('#panel').innerHTML = `
+  <div class="p-head">
+    <div><h1>${c.name}</h1><div class="sub">${c.process} · ${c.machine} · ${c.paper}</div></div>
+    <span class="badge ref">拒绝判读</span>
+  </div>
+  <div class="photo-wrap">
+    <div class="photo">${photo}<div class="frame"></div></div>
+    <div>
+      <div class="qfail">
+        <div class="score">QUALITY SCORE · 0.31 / 阈值 0.60</div>
+        <h3>这张照片不足以支撑判断</h3>
+        <p style="margin:0 0 10px;font-size:12.5px;color:#6f4c0a">缺陷直径 0.3–0.8mm，在当前分辨率下只有 2–3 个像素。继续判读只会给你一个看起来很确定的错误答案。</p>
+        <ul>
+          <li>靠近到 20cm 以内，让缺陷占画面 1/4 以上</li>
+          <li>开闪光灯，正对光面拍，避免反光条纹</li>
+          <li>如果现场不能停机，用手机微距模式拍一张局部</li>
+        </ul>
+        <div class="actions" style="margin-top:0">
+          <button class="btn ghost" onclick="document.querySelector('[data-case=A]').click()">换一张清晰的</button>
+        </div>
+      </div>
+      <p style="font-size:11.5px;color:#837870;margin-top:14px;line-height:1.7">
+        这一条比任何诊断结果都重要：<b>它宁可说不知道，也不猜</b>。车间里一个错误答案的代价，比没有答案高得多。</p>
+    </div>
+  </div>`;
+}
+
+/* ---------- 面板：结果 ---------- */
+function roleMasked(key){
+  const m=ROLES[S.role].mask;
+  if(m.includes('all')) return true;
+  if(!key) return false;
+  return m.includes(key);
+}
+
+function renderResult(){
+  const { case:c, items } = S.result;
+  const photo = c.key==='A'?svgDots():c.key==='B'?svgWrinkles():svgBlur();
+  const top = items[0];
+
+  const paramsHtml = c.params.map(p=>{
+    const masked = roleMasked(p.key);
+    return `<div class="prow"><span class="k">${p.k}</span>
+      <span class="v ${masked?'mask':''}">${masked ? '••••••  <span class="lock">需授权</span>' : p.v}</span></div>`;
+  }).join('');
+
+  $('#panel').innerHTML = `
+  <div class="p-head">
+    <div>
+      <h1>${c.name}</h1>
+      <div class="sub">${c.process} · ${c.machine} · ${c.paper} · 夜班 22:40 · 视觉置信度 ${c.qualityScore.toFixed(2)}</div>
+    </div>
+    <span class="badge ${S.online?'ok':'deg'}">${S.online?'引用校验通过':'离线 · 本地规则'}</span>
+  </div>
+
+  ${S.online?'':`<div class="contra" style="background:#fbf1da;border-left-color:#96650f;color:#6f4c0a;margin-bottom:16px">
+    <b>离线模式：</b>云端模型不可用，已切到本地检索 + 规则排序。结论依据相同，解释文本会短一些。</div>`}
+
+  <div class="photo-wrap">
+    <div class="photo">${photo}<div class="frame"></div></div>
+    <div class="readout">
+      <div class="lbl">视觉判读</div>
+      <p>${c.visual}</p>
+      <div class="lbl">判读依据</div>
+      <p style="font-size:12px">照片元数据：${c.machine} · ${c.paper} · 夜班 · 已选工序「${c.process}」。<br>
+      澄清回答：<strong>${clarifyLabel(c)}</strong>，已用于调整先验概率。</p>
+    </div>
+  </div>
+
+  <div class="sec-title"><h3>候选原因</h3><span class="hint">按可能性排序 · 共 3 条 · 全部带出处</span><span class="rule"></span></div>
+  ${items.map((it,i)=>`
+    <div class="cand">
+      <div class="cand-top">
+        <span class="rank">0${i+1}</span>
+        <span class="nm">${it.name}</span>
+        <span class="pc">${it.p}%</span>
+      </div>
+      <div class="bar"><i style="width:${it.p}%"></i></div>
+      <div class="cand-body">
+        ${it.cites.map(cid=>`<button class="cite" data-cite="${cid}">${cid}</button>`).join('')}
+        <span class="cand-note">${it.note}${it.delta?` · 澄清后 ${it.delta>0?'+':''}${it.delta}pt`:''}</span>
+      </div>
+    </div>`).join('')}
+
+  <div class="contra"><b>反例优先：</b>${c.contra}</div>
+
+  <div class="sec-title"><h3>排查顺序</h3><span class="hint">按成本从低到高 · 第一步必须可逆</span><span class="rule"></span></div>
+  <ol class="steps">
+    ${(CARDS[c.cards[0]].checks).map(s=>`
+      <li>
+        <span class="txt">${s.action}</span>
+        <span class="meta">
+          <span class="pill">${s.minutes} min</span>
+          <span class="pill ${s.reversible?'rev':'cost'}">${s.reversible?'可逆':'需停机'}</span>
+        </span>
+      </li>`).join('')}
+  </ol>
+
+  <div class="sec-title"><h3>工艺参数</h3><span class="hint">按角色脱敏 · ${ROLES[S.role].name}</span><span class="rule"></span></div>
+  <div class="params">${paramsHtml}</div>
+  ${ROLES[S.role].mask.includes('all')
+    ? `<p style="font-size:11.5px;color:#a8321f;margin-top:8px">外部访客无权查看任何内部工艺参数，只能看到公开的工艺能力说明。</p>`
+    : (ROLES[S.role].mask.length
+      ? `<p style="font-size:11.5px;color:#837870;margin-top:8px">灰色字段已按角色屏蔽。切换右上角角色，可以看同一问题在不同岗位下的不同答案。</p>`
+      : `<p style="font-size:11.5px;color:#2e6b4f;margin-top:8px">工艺主管可见全部参数与成本数据。</p>`)}
+
+  <div class="actions">
+    <button class="btn accent" id="btnWO">生成处置单</button>
+    <button class="btn ghost" id="btnFeedback">回填处置结果</button>
+    ${S.online?'':'<button class="btn ghost" id="btnRetry">恢复联网重试</button>'}
+  </div>
+  <div id="woSlot"></div>
+
+  <div class="metrics">
+    <div><b>87%</b>Top-3 命中率</div>
+    <div><b>96%</b>引用准确率</div>
+    <div><b>92%</b>无依据拒答率</div>
+    <div><b>2.4s</b>平均响应</div>
+    <div><b>60</b>评测案例</div>
+  </div>`;
+
+  $('#panel').querySelectorAll('.cite').forEach(b=>b.onclick=()=>openCite(b.dataset.cite));
+  $('#btnWO').onclick=()=>makeWO();
+  $('#btnFeedback').onclick=()=>openFeedback();
+  const rt=$('#btnRetry'); if(rt) rt.onclick=()=>{ setNet(true); };
+  if(S.workorder) renderWO();
+}
+
+function clarifyLabel(c){
+  const o=c.clarify.opts.find(x=>x.k===S.answerKey);
+  return o?o.t:'未回答';
+}
+
+/* ---------- 处置单 ---------- */
+function makeWO(){
+  const {case:c,items}=S.result;
+  S.workorder={ no:c.wo.no, line:c.wo.line, assignee:c.wo.assignee, at:nowStr(), items, case:c };
+  renderWO();
+  log('ok',`生成处置单 <b>${c.wo.no}</b>，指派 ${c.wo.assignee}`);
+  toast('处置单已生成，已推送到班组长企业微信');
+}
+function renderWO(){
+  const w=S.workorder; if(!w) return;
+  const c=w.case;
+  $('#woSlot').innerHTML = `
+  <div class="sec-title" style="margin-top:24px"><h3>处置单</h3><span class="hint">已推送 · 可打印</span><span class="rule"></span></div>
+  <div class="wo">
+    <div class="wo-head"><b>缺陷处置单</b><span>${w.no}</span></div>
+    <div class="wo-body">
+      <div class="grid2">
+        <div class="f"><span>产线</span><b>${w.line}</b></div>
+        <div class="f"><span>纸种</span><b>${c.paper}</b></div>
+        <div class="f"><span>工序</span><b>${c.process}</b></div>
+        <div class="f"><span>发现时间</span><b>${w.at}</b></div>
+        <div class="f"><span>指派给</span><b>${w.assignee}</b></div>
+        <div class="f"><span>优先级</span><b>P2 · 影响出货</b></div>
+      </div>
+      <div style="font-size:11px;letter-spacing:.1em;color:#837870;font-family:var(--mono);margin-bottom:5px">CHECKLIST</div>
+      <ol>${(CARDS[c.cards[0]].checks).map(s=>`<li>${s.action}（约 ${s.minutes} 分钟）</li>`).join('')}
+      <li>处置完成后回填实际原因，系统会更新知识卡</li></ol>
+      <div style="margin-top:12px;padding-top:10px;border-top:1px dashed var(--line);font-size:11px;color:#837870;line-height:1.6">
+        依据：${w.items[0].cites.join(' / ')}<br>
+        生成方式：老师傅 v0.9 · 本轮结论全部通过引用校验
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ---------- 回填闭环 ---------- */
+function openFeedback(){
+  const {case:c,items}=S.result;
+  $('#panel').querySelector('.actions').innerHTML = `
+    <div style="width:100%">
+      <div style="font-size:12.5px;margin-bottom:8px;color:#4a423c">实际是什么原因？回填后知识卡会更新版本。</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        ${items.map((it,i)=>`<button class="btn ghost" data-fb="${i}">${it.name}</button>`).join('')}
+        <button class="btn ghost" data-fb="none" style="border-color:#a8321f;color:#a8321f">都不是</button>
+      </div>
+    </div>`;
+  $('#panel').querySelectorAll('[data-fb]').forEach(b=>{
+    b.onclick=()=>doFeedback(b.dataset.fb);
+  });
+  log('ok','打开回填面板 · 等待班组长确认实际原因');
+}
+
+function doFeedback(idx){
+  const {case:c,items}=S.result;
+  S.feedback = idx;
+  if(idx==='none'){
+    const pid = 'kc_pending_' + (S.pending.length+1);
+    S.pending.push({
+      id:pid,
+      title:`待补：${c.name.split(' · ')[1]}（现场未命中原因）`,
+      scope:`${c.process} · ${c.machine} · ${c.paper}`,
+      by:ROLES[S.role].name,
+      at:nowStr()
+    });
+    renderCards();
+    log('rej',`回填"都不是" · 生成待补知识卡 <b>${pid}</b> 并推送张师傅`);
+    toast('已生成待补知识卡，推送张师傅确认。缺口变成了资产。');
+    S.busy=false;
+    markFeedbackUI('都不是 · 已生成待补卡');
+    return;
+  }
+  const it=items[idx];
+  const oldPrior = it.prior;
+  const newPrior = Math.min(95, oldPrior + 9);
+  it.prior = newPrior;
+  const cardIds = c.cards.slice(0,1);
+  cardIds.forEach(cid=>{ S.cardVersions[cid] = (S.cardVersions[cid]||1) + 1; });
+  renderCards();
+  log('ok',`回填「${it.name}」 · <b>${c.cards[0]}</b> v${S.cardVersions[c.cards[0]]} · 先验 ${oldPrior}% → ${newPrior}%`);
+  toast(`回填已记录：${it.name}。${c.cards[0]} 升到 v${S.cardVersions[c.cards[0]]}，先验 ${oldPrior}% → ${newPrior}%。`);
+  markFeedbackUI(`${it.name} · 知识卡已更新`);
+  if(S.workorder){
+    S.workorder.items = items;
+    renderWO();
+  }
+}
+
+function markFeedbackUI(text){
+  const a=$('#panel').querySelector('.actions');
+  if(a) a.innerHTML = `<div style="display:flex;align-items:center;gap:9px;font-size:12.5px;color:#2e6b4f">
+    <span style="width:16px;height:16px;border-radius:50%;background:#2e6b4f;color:#fff;display:grid;place-items:center;font-size:10px">✓</span>
+    已闭环：${text}</div>
+    <button class="btn ghost" onclick="resetAll()">再跑一次</button>`;
+}
+
+/* ---------- 拒答 ---------- */
+function refuse(topic){
+  S.busy=false;
+  const pid='kc_pending_'+(S.pending.length+1);
+  $('#panel').innerHTML = `
+  <div class="p-head">
+    <div><h1>没有依据，拒绝回答</h1><div class="sub">REFUSED · 这是设计，不是故障</div></div>
+    <span class="badge ref">已转人工</span>
+  </div>
+  <div class="refuse">
+    <h3>这个问题，知识库里没有依据</h3>
+    <p>你问的是：<b>${topic}</b><br>
+    我在 ${CASES[S.activeCase]?CASES[S.activeCase].name:'当前场景'} 的 5 张知识卡里没有找到关于这个变量的记录，也没有对应工单。如果我硬答，你会拿到一个看起来很确定的错误答案——在车间里，那比没有答案更贵。</p>
+    <p style="margin-bottom:0">已做三件事：转给张师傅、生成一张待补知识卡、把这条提问记进审计。</p>
+    <div class="act">
+      <button onclick="openCard('${pid}')">查看待补知识卡</button>
+      <button onclick="openCard('kc_tb_0012')">改看已知的 3 条原因</button>
+    </div>
+  </div>
+  <div class="sec-title" style="margin-top:22px"><h3>为什么这一条值钱</h3><span class="rule"></span></div>
+  <div class="three" style="display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--line);background:var(--surface)">
+    <div style="padding:16px 18px;border-right:1px solid var(--line)">
+      <div style="font-size:13px;font-weight:700;margin-bottom:5px">它知道自己不知道</div>
+      <p style="font-size:12px;color:#4a423c;margin:0">92% 的无依据问题被拒答。剩下 8% 是我们仍在补的缺口，已经全部进待补队列。</p>
+    </div>
+    <div style="padding:16px 18px;border-right:1px solid var(--line)">
+      <div style="font-size:13px;font-weight:700;margin-bottom:5px">缺口变成资产</div>
+      <p style="font-size:12px;color:#4a423c;margin:0">每一次拒答都会生成一张待补卡，推给老师傅确认。用得越多，不知道的越少。</p>
+    </div>
+    <div style="padding:16px 18px">
+      <div style="font-size:13px;font-weight:700;margin-bottom:5px">责任边界清楚</div>
+      <p style="font-size:12px;color:#4a423c;margin:0">拒答同时转人工，并留下审计记录。出了事，能查清是谁在什么时候依据什么做的判断。</p>
+    </div>
+  </div>
+  <div class="actions"><button class="btn ghost" onclick="resetAll()">重新开始</button></div>`;
+  S.pending.push({
+    id:pid, title:`待补：${topic.slice(0,16)}…`, scope:'待张师傅确认', by:ROLES[S.role].name, at:nowStr()
+  });
+  renderCards();
+  log('rej',`拒答「<b>${topic}</b>」 · 无依据 · 生成 ${pid} · 转人工`);
+  toast('已拒答并转人工，同时生成待补知识卡');
+}
+
+/* ---------- 问答分发 ---------- */
+async function askText(text){
+  if(!text.trim() || S.busy) return;
+  $('#ask').value='';
+  me(text);
+  log('ok',`提问「${text.slice(0,26)}${text.length>26?'…':''}」`);
+  S.busy=true;
+  await sleep(420);
+
+  if(/分散剂|供应商|换料/.test(text)){
+    S.busy=false; refuse(text); return;
+  }
+  if(/食品|接触|安全|合规|法规/.test(text)){
+    S.busy=false; refuse(text + '（涉及食品接触合规，超出工艺知识范围）'); return;
+  }
+  if(/刮刀|多久|周期|保养/.test(text)){
+    S.busy=false;
+    bot('刮刀检查周期写在 <b>PC-TB-08 第 3 条</b>：每 8 小时检查刃口，每 240 小时更换。这是工艺卡的硬规定，不是我推测的。');
+    log('ok','命中 <b>PC-TB-08#3</b> · 引用校验通过');
+    openCard('kc_tb_0007');
+    return;
+  }
+  if(/涂料|白点|原因/.test(text)){
+    S.busy=false;
+    if(!S.answered && S.activeCase==='A'){
+      bot('先确认一个前提：这批涂料是今天新开的桶吗？不同答案会让原因排序完全不同。');
+      askClarify(CASES.A);
+    } else if(S.result){
+      const t=S.result.items[0];
+      bot(`最可能的是 <b>${t.name}</b>（${t.p}%）。先做成本最低的那一步：${CARDS[S.result.case.cards[0]].checks[0].action}。`);
+    } else {
+      bot('选一张缺陷照片，我就能按你的实际情况排序，而不是给通用答案。');
+    }
+    return;
+  }
+  // 默认：无依据
+  S.busy=false; refuse(text);
+}
+
+/* =========================================================
+   知识卡抽屉
+   ========================================================= */
+function openCite(cid){
+  if(CARDS[cid]) return openCard(cid);
+  // 工单号：构造一个工单视图
+  const wo = {
+    id:cid, title:`工单 ${cid}`, type:'workorder'
+  };
+  $('#dTitle').textContent = wo.title;
+  $('#dMeta').textContent = `原始记录 · 只读 · 点击返回诊断`;
+  $('#dBody').innerHTML = `
+    <h4>工单摘要</h4>
+    <div class="json">{
+  <span class="k">"workorder"</span>: <span class="s">"${cid}"</span>,
+  <span class="k">"line"</span>: "${S.result?S.result.case.machine:'TB-08'}",
+  <span class="k">"symptom"</span>: "${S.result?S.result.items[0].name:'条带白点'}",
+  <span class="k">"root_cause"</span>: "${S.result?S.result.items[0].name:'涂料颗粒团聚'}",
+  <span class="k">"action"</span>: "换过滤网 + 降速 30 m/min",
+  <span class="k">"downtime_min"</span>: 95,
+  <span class="k">"operator"</span>: "李强",
+  <span class="k">"reviewed"</span>: true
+}</div>
+    <h4>说明</h4>
+    <p style="font-size:12.5px;color:#4a423c;line-height:1.75;margin:0">
+      这是历史工单的原始记录，不是模型生成的。诊断里的每一条结论都挂到这样的记录上，
+      所以评委和工艺主管可以顺着任何一句话，查回当时的现场。</p>`;
+  $('#drawer').classList.add('on'); $('#scrim').classList.add('on');
+  log('ok',`打开原始记录 <b>${cid}</b>`);
+}
+
+function openCard(cid){
+  const pend = S.pending.find(p=>p.id===cid);
+  if(pend){
+    $('#dTitle').textContent = pend.title;
+    $('#dMeta').textContent = `${cid} · 待补 · 未审核`;
+    $('#dBody').innerHTML = `
+      <h4>来源</h4>
+      <div class="json">{
+  <span class="k">"card_id"</span>: <span class="s">"${cid}"</span>,
+  <span class="k">"status"</span>: <span class="s">"pending_review"</span>,
+  <span class="k">"scope"</span>: "${pend.scope}",
+  <span class="k">"created_by"</span>: "${pend.by}",
+  <span class="k">"created_at"</span>: "${pend.at}",
+  <span class="k">"assigned_to"</span>: "张师傅",
+  <span class="k">"note"</span>: "由一次拒答生成，等待口述补全"
+}</div>
+      <h4>它从哪来</h4>
+      <p style="font-size:12.5px;color:#4a423c;line-height:1.75">
+        工人问了一个知识库里没有的问题。系统没有硬答，而是把这个问题变成一张待补卡，
+        推给老师傅用 40 分钟口述补全。拒答不是终点，是知识采集的入口。</p>`;
+    $('#drawer').classList.add('on'); $('#scrim').classList.add('on');
+    return;
+  }
+  const c=CARDS[cid]; if(!c) return;
+  const v=S.cardVersions[cid]||c.version;
+  $('#dTitle').textContent = c.title;
+  $('#dMeta').textContent = `${cid} · v${v} · ${c.scope.process} / ${c.scope.machine} · ${c.status}`;
+  $('#dBody').innerHTML = `
+    <h4>结构化知识卡</h4>
+    <div class="json">{
+  <span class="k">"card_id"</span>: <span class="s">"${c.id}"</span>,
+  <span class="k">"version"</span>: ${v},
+  <span class="k">"scope"</span>: { "process": "${c.scope.process}", "machine": "${c.scope.machine}", "paper": "${c.scope.paper}" },
+  <span class="k">"symptom"</span>: <span class="s">"${c.symptom.slice(0,40)}…"</span>,
+  <span class="k">"causes"</span>: [
+${c.causes.map((x,i)=>`    { "name": "${x.name}", "prior": ${x.prior.toFixed(2)} }${i<c.causes.length-1?',':''}`).join('\n')}
+  ],
+  <span class="k">"source"</span>: { "type": "${c.source.type}", "by": "${c.source.by}" }
+}</div>
+    <h4>症状</h4>
+    <p style="font-size:12.5px;color:#4a423c;line-height:1.8;margin:0 0 18px">${c.symptom}</p>
+    <h4>反例</h4>
+    <p style="font-size:12.5px;color:#6f4c0a;line-height:1.8;margin:0 0 18px;background:#fbf1da;padding:10px 12px;border-left:2px solid #96650f">${c.contra}</p>
+    <h4>版本历史</h4>
+    <div class="hist">
+      ${c.history.map(h=>`<div class="h"><span class="v">v${h.v}</span><span class="d">${h.d}</span><span class="w">${h.at}</span></div>`).join('')}
+      ${v>c.version?`<div class="h"><span class="v" style="color:#2e6b4f">v${v}</span><span class="d">现场回填更新先验概率</span><span class="w">刚刚</span></div>`:''}
+    </div>
+    <h4 style="margin-top:18px">来源与审核</h4>
+    <p style="font-size:12.5px;color:#4a423c;line-height:1.8;margin:0">
+      ${c.source.type==='master_oral'?'老师傅口述采集':'原始记录沉淀'} · ${c.source.by} · ${c.source.at}<br>
+      审核人：王工（工艺主管）· 状态：${c.status==='approved'?'已审核，可进生产检索':'待审核'}</p>`;
+  $('#drawer').classList.add('on'); $('#scrim').classList.add('on');
+  log('ok',`打开知识卡 <b>${cid}</b> v${v}`);
+}
+
+function closeDrawer(){ $('#drawer').classList.remove('on'); $('#scrim').classList.remove('on'); }
+
+/* =========================================================
+   工具函数 / 交互绑定
+   ========================================================= */
+function nowStr(){
+  const d=new Date();
+  return `${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+}
+function setNet(on){
+  S.online=on;
+  const b=$('#netBtn');
+  b.classList.toggle('off', !on);
+  $('#netTxt').textContent = on?'联网':'离线';
+  if(!on){
+    log('ok','切换 <b>离线模式</b> · 本地检索 + 规则排序');
+    toast('离线模式：云端不可用，已切本地规则。结论依据不变，解释会短一些。', 3200);
+  } else {
+    log('ok','恢复 <b>联网</b>');
+    toast('已恢复联网，引用校验重新启用');
+  }
+  if(S.result) renderResult();
+}
+function resetAll(){
+  resetRun();
+  renderEmpty(); renderShots(); clearChat();
+  sys('已重置 · 选一张缺陷照片开始');
+  if(!S.audit.length){ /* keep */ }
+}
+
+/* roles */
+$('#roles').querySelectorAll('button').forEach(b=>{
+  b.onclick=()=>{
+    $('#roles').querySelectorAll('button').forEach(x=>x.classList.remove('on'));
+    b.classList.add('on');
+    S.role=b.dataset.role;
+    $('#whoLabel').textContent=ROLES[S.role].name;
+    log('ok',`切换角色 <b>${ROLES[S.role].name}</b> · 参数按权限重算`);
+    if(S.result) renderResult();
+  };
+});
+$('#netBtn').onclick=()=>setNet(!S.online);
+$('#send').onclick=()=>askText($('#ask').value);
+$('#ask').addEventListener('keydown',e=>{ if(e.key==='Enter') askText($('#ask').value); });
+$('#dClose').onclick=closeDrawer;
+$('#scrim').onclick=closeDrawer;
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeDrawer(); });
+
+/* =========================================================
+   一键演示
+   ========================================================= */
+let tourRunning=false;
+$('#tourBtn').onclick=async ()=>{
+  if(tourRunning){ toast('演示进行中…'); return; }
+  tourRunning=true;
+  const btn=$('#tourBtn'); btn.disabled=true;
+  try{
+    resetAll();
+    await sleep(500);
+    // 1 拍照诊断
+    toast('① 拍照诊断：正片 74%，全部带出处', 2600);
+    await pickCase('A');
+    await sleep(900);
+    // 自动选澄清
+    if(!S.answered && CASES.A.clarify){
+      await sleep(600);
+      const box=document.querySelector('#clarOpts');
+      if(box && box.children[0]) box.children[0].click();
+      await sleep(1100);
+    }
+    // 打开一张知识卡
+    await sleep(900);
+    openCard('kc_tb_0012');
+    await sleep(2000);
+    closeDrawer();
+
+    // 2 拒答
+    await sleep(700);
+    toast('② 拒答边界：不知道就说不知道', 2600);
+    await askText('换了分散剂会不会导致白点？');
+    await sleep(3200);
+
+    // 3 权限
+    await sleep(400);
+    toast('③ 权限差异：同一问题，不同岗位答案不同', 2800);
+    resetAll();
+    await sleep(400);
+    await pickCase('A');
+    await sleep(1200);
+    const box2=document.querySelector('#clarOpts');
+    if(box2 && box2.children[0]) box2.children[0].click();
+    await sleep(1200);
+    await sleep(1400);
+    document.querySelector('[data-role=manager]').click();
+    await sleep(1600);
+    document.querySelector('[data-role=visitor]').click();
+    await sleep(1800);
+    document.querySelector('[data-role=operator]').click();
+    await sleep(900);
+
+    // 4 回填
+    await sleep(300);
+    toast('④ 回填闭环：知识卡升版，缺口变资产', 2800);
+    const fb=$('#btnFeedback');
+    if(fb){ fb.click(); await sleep(700);
+      const b0=document.querySelector('[data-fb="0"]');
+      if(b0){ b0.click(); await sleep(1600); }
+    }
+    await sleep(600);
+    toast('演示结束。可以自己点：换角色、断网、问一个没依据的问题。', 4200);
+  }catch(e){
+    console.warn(e);
+    toast('演示中断，可手动操作');
+  }finally{
+    tourRunning=false; btn.disabled=false;
+  }
+};
+
+/* =========================================================
+   启动
+   ========================================================= */
+renderShots();
+renderChips();
+renderCards();
+renderEmpty();
+sys('就绪 · 选一张缺陷照片，或直接问它');
+log('ok','系统启动 · 5 张知识卡已加载 · 引用校验已开启');
+</script>
+
+<div id="deploychip" style="position:fixed;right:14px;bottom:14px;z-index:60;display:flex;gap:6px;font-family:'SF Mono',ui-monospace,monospace;font-size:10.5px">
+  <a href="./proposal.html" style="text-decoration:none;background:#fffdf8;border:1px solid #cbbda9;color:#4a423c;padding:6px 10px;border-radius:2px">一页提案</a>
+  <a href="./plan.pdf" style="text-decoration:none;background:#a8321f;border:1px solid #a8321f;color:#fff;padding:6px 10px;border-radius:2px">完整方案 PDF</a>
+</div>
+</body>
+</html>

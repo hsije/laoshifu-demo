@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>老师傅 · 制造业经验智能体 | 帝王蟹黑客松（衢州站）赛道 D</title>
+<style>
+  :root{
+    --ink:#14110f;
+    --ink-2:#3d3733;
+    --ink-3:#6f665f;
+    --paper:#f6f2ea;
+    --paper-2:#efe8dc;
+    --line:#d9cfc0;
+    --accent:#9b2c1f;
+    --accent-2:#c4552f;
+    --ok:#2f6b4f;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:"Noto Serif SC","Songti SC","Source Han Serif SC",Georgia,serif;
+    line-height:1.75;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1080px;margin:0 auto;padding:0 40px}
+  .mono{font-family:"SF Mono",ui-monospace,Menlo,Consolas,monospace;font-size:12px;letter-spacing:.08em}
+  .kicker{font-family:"SF Mono",ui-monospace,Menlo,Consolas,monospace;font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--ink-3)}
+
+  /* hero */
+  header{padding:72px 0 48px;border-bottom:1px solid var(--line)}
+  .topline{display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap;align-items:baseline}
+  h1{
+    font-size:clamp(44px,7vw,86px);
+    line-height:1.02;margin:22px 0 0;font-weight:800;letter-spacing:-.02em;
+  }
+  h1 .dot{color:var(--accent)}
+  .lede{font-size:clamp(18px,2.2vw,24px);color:var(--ink-2);max-width:760px;margin:20px 0 0}
+  .lede b{color:var(--accent);font-weight:700}
+  .meta{display:flex;gap:36px;flex-wrap:wrap;margin-top:34px}
+  .meta div{border-left:2px solid var(--accent);padding-left:14px}
+  .meta dt{font-family:"SF Mono",ui-monospace,monospace;font-size:10px;letter-spacing:.18em;color:var(--ink-3);text-transform:uppercase;margin:0}
+  .meta dd{margin:2px 0 0;font-size:15px;font-weight:600}
+
+  section{padding:64px 0;border-bottom:1px solid var(--line)}
+  .sec-head{display:flex;align-items:baseline;gap:18px;margin-bottom:28px}
+  .sec-num{font-family:"SF Mono",ui-monospace,monospace;font-size:12px;color:var(--accent);letter-spacing:.1em}
+  h2{font-size:clamp(24px,3vw,34px);margin:0;font-weight:800;letter-spacing:-.01em}
+  h3{font-size:17px;margin:0 0 8px;font-weight:700}
+  p{margin:0 0 14px}
+  .sub{color:var(--ink-2);max-width:78ch}
+
+  .grid{display:grid;gap:22px}
+  .g2{grid-template-columns:1fr 1fr}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  .g4{grid-template-columns:repeat(4,1fr)}
+  @media(max-width:820px){.g2,.g3,.g4{grid-template-columns:1fr}.wrap{padding:0 22px}}
+
+  .card{background:var(--paper-2);border:1px solid var(--line);padding:20px 22px}
+  .card .num{font-family:"SF Mono",ui-monospace,monospace;font-size:11px;color:var(--accent);letter-spacing:.12em}
+  .card h3{margin-top:8px}
+  .card p{font-size:14.5px;color:var(--ink-2);margin:0}
+
+  /* track table */
+  table{width:100%;border-collapse:collapse;font-size:14.5px}
+  th,td{text-align:left;padding:12px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{font-family:"SF Mono",ui-monospace,monospace;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);font-weight:500}
+  tr.pick td{background:#efe3d4}
+  tr.pick td:first-child{box-shadow:inset 4px 0 0 var(--accent)}
+  .tag{display:inline-block;font-family:"SF Mono",ui-monospace,monospace;font-size:10.5px;letter-spacing:.08em;padding:2px 7px;border:1px solid var(--ink-3);color:var(--ink-2)}
+  .tag.hot{border-color:var(--accent);color:var(--accent)}
+
+  /* product mock */
+  .mock{background:#fffdf8;border:1px solid var(--line);box-shadow:0 10px 30px rgba(20,17,15,.07)}
+  .mock-bar{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--line);background:var(--paper-2)}
+  .mock-bar i{width:8px;height:8px;border-radius:50%;background:var(--line);display:block}
+  .mock-bar span{margin-left:8px;font-family:"SF Mono",ui-monospace,monospace;font-size:11px;color:var(--ink-3)}
+  .mock-body{padding:20px 22px}
+  .q{font-size:15px;background:var(--paper-2);border-left:3px solid var(--ink-3);padding:10px 14px;margin-bottom:16px}
+  .q small{display:block;color:var(--ink-3);font-size:11.5px;font-family:"SF Mono",ui-monospace,monospace;letter-spacing:.06em;margin-top:4px}
+  .cand{display:flex;align-items:baseline;gap:10px;padding:9px 0;border-bottom:1px dashed var(--line)}
+  .cand .pct{font-family:"SF Mono",ui-monospace,monospace;font-size:12px;color:var(--accent);min-width:44px}
+  .cand .name{flex:1;font-size:14.5px}
+  .cite{font-family:"SF Mono",ui-monospace,monospace;font-size:10px;color:var(--ok);border:1px solid #bcd4c6;background:#eff6f1;padding:1px 6px;white-space:nowrap}
+  .steps{counter-reset:s;margin:14px 0 0;padding:0;list-style:none;font-size:14px}
+  .steps li{counter-increment:s;padding:6px 0 6px 26px;position:relative;color:var(--ink-2)}
+  .steps li::before{content:counter(s);position:absolute;left:0;top:6px;font-family:"SF Mono",ui-monospace,monospace;font-size:10.5px;color:var(--accent);border:1px solid var(--accent);width:16px;height:16px;line-height:15px;text-align:center;border-radius:50%}
+  .refuse{background:#fbeeea;border:1px solid #e3b7ab;padding:12px 14px;font-size:13.5px;color:#7d2a1d;margin-top:14px}
+
+  .path{display:flex;gap:16px;align-items:flex-start}
+  .path .idx{font-family:"SF Mono",ui-monospace,monospace;font-size:34px;line-height:1;color:var(--accent);font-weight:700;min-width:52px}
+  .path h3{margin-bottom:4px}
+  .path p{font-size:14.5px;margin:0;color:var(--ink-2)}
+
+  .quote{font-size:clamp(22px,3vw,32px);line-height:1.45;font-weight:700;border-left:5px solid var(--accent);padding-left:22px;margin:0}
+  .quote small{display:block;font-family:"SF Mono",ui-monospace,monospace;font-size:11px;letter-spacing:.14em;color:var(--ink-3);font-weight:400;margin-top:12px}
+
+  .timeline{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border-top:2px solid var(--ink);margin-top:10px}
+  .tl{padding:16px 16px 0 0;border-right:1px solid var(--line)}
+  .tl:last-child{border-right:0}
+  .tl .t{font-family:"SF Mono",ui-monospace,monospace;font-size:11px;color:var(--accent);letter-spacing:.08em}
+  .tl h3{font-size:15px;margin:6px 0 4px}
+  .tl p{font-size:13px;color:var(--ink-2);margin:0}
+  @media(max-width:820px){.timeline{grid-template-columns:1fr 1fr}.tl{padding:14px 14px 14px 0}}
+
+  .kpi{display:flex;flex-direction:column;gap:2px}
+  .kpi .v{font-size:clamp(28px,3.6vw,42px);font-weight:800;line-height:1.1;color:var(--accent)}
+  .kpi .l{font-size:13px;color:var(--ink-2)}
+  .kpi .n{font-family:"SF Mono",ui-monospace,monospace;font-size:10px;color:var(--ink-3);letter-spacing:.06em}
+
+  ul.clean{margin:0;padding-left:18px;font-size:14.5px;color:var(--ink-2)}
+  ul.clean li{margin-bottom:7px}
+  ul.clean b{color:var(--ink)}
+
+  .three{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border:1px solid var(--line)}
+  .three > div{padding:20px 22px;border-right:1px solid var(--line)}
+  .three > div:last-child{border-right:0}
+  .three .big{font-size:16.5px;font-weight:700;margin-bottom:6px}
+  .three p{font-size:13.5px;margin:0;color:var(--ink-2)}
+  @media(max-width:820px){.three{grid-template-columns:1fr}.three>div{border-right:0;border-bottom:1px solid var(--line)}}
+
+  footer{padding:52px 0 72px}
+  footer .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;align-items:flex-end}
+  footer .sig{font-size:13px;color:var(--ink-3);max-width:56ch}
+  .stamp{border:2px solid var(--accent);color:var(--accent);padding:10px 16px;font-family:"SF Mono",ui-monospace,monospace;font-size:11px;letter-spacing:.14em;transform:rotate(-2deg)}
+
+  @page{size:A4;margin:14mm 14mm}
+  @media print{
+    body{background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    section{padding:26px 0;break-inside:auto}
+    header{padding:0 0 22px}
+    .wrap{max-width:none;padding:0}
+    h1{font-size:52px}
+    h2{font-size:24px}
+    .card,.mock,.tl,.three>div,.path,.kpi{break-inside:avoid}
+    .card,.mock{box-shadow:none}
+    .sec-head{margin-bottom:16px}
+    .grid{gap:14px}
+    table{font-size:12.5px}
+    th,td{padding:8px 8px}
+    footer{padding:24px 0 0}
+    .quote{font-size:22px}
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+<header>
+  <div class="topline">
+    <div class="kicker">网易智企帝王蟹黑客松 · 衢州站 · 2026.11.17–12.18</div>
+    <div class="kicker">赛道 D · AI 企业智能体应用</div>
+  </div>
+  <h1>老师傅<span class="dot">。</span></h1>
+  <p class="lede">把车间里那位快退休的老师傅，变成企业<b>不会离职的经验资产</b>。<br>
+  工人拍一张缺陷照片、说一句方言，智能体给出最可能的三个原因、排查顺序和处置单——每条结论都能点开原始工单。</p>
+
+  <dl class="meta">
+    <div><dt>Product</dt><dd>制造业经验智能体</dd></div>
+    <div><dt>First Market</dt><dd>龙游特种纸 · 61 家中小微</dd></div>
+    <div><dt>Team</dt><dd>5 人 / 24 小时现场建造</dd></div>
+    <div><dt>Hook</dt><dd>老师傅会退休，手艺不该退休</dd></div>
+  </dl>
+</header>
+
+<section>
+  <div class="sec-head"><span class="sec-num">01</span><h2>为什么是 D 赛道</h2></div>
+  <p class="sub">A、B、C 三条赛道都指向"衢州文旅"，也必然是大多数队伍的选择。在同一批评委面前看第十五支城市宣传片，边际印象会快速衰减。D 是主办方最专业、参赛密度最低、且最能在 24 小时内做出可交互原型的象限。</p>
+  <table>
+    <thead><tr><th>赛道</th><th>参赛密度</th><th>评委熟悉度</th><th>24h 可完成</th><th>判断</th></tr></thead>
+    <tbody>
+      <tr><td>A · AI 文创设计</td><td><span class="tag hot">高</span></td><td>高</td><td>高</td><td>缺设计产能与实体打样</td></tr>
+      <tr><td>B · AI 音视频</td><td><span class="tag hot">很高</span></td><td>高</td><td>中</td><td>渲染耗时，现场风险高</td></tr>
+      <tr><td>C · AI 文旅营销</td><td><span class="tag hot">很高</span></td><td>高</td><td>中高</td><td>数字人同质化严重</td></tr>
+      <tr class="pick"><td><b>D · AI 企业智能体</b></td><td><span class="tag">低</span></td><td><b>极高</b></td><td><b>高</b></td><td><b>主办方主场，窄场景易做透</b></td></tr>
+      <tr><td>E · AI + 自由命题</td><td><span class="tag">中</span></td><td>中</td><td>视题目</td><td>无统一尺子，反而难打分</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <div class="sec-head"><span class="sec-num">02</span><h2>一个岗位，一天，一个动作</h2></div>
+  <div class="grid g2">
+    <div>
+      <h3>用户：中小微纸厂的班组长</h3>
+      <p class="sub">夜班发现纸面白点，停机。打电话找老师傅——老师傅在另一个厂，或者已经退休。靠微信群发照片、凭记忆排查，试错 2–6 小时。复机后写一张纸质记录，下次同样的问题再从零开始。</p>
+      <h3 style="margin-top:22px">第二用户：老师傅本人</h3>
+      <p class="sub">经验在脑子里，不愿意也不会写文档。过去的知识库项目失败，是因为要求他们把四十年的经验一次性"录入系统"。我们反过来：不要求他们写，只要求他们说。</p>
+    </div>
+    <div>
+      <div class="kpi" style="gap:18px">
+        <div><div class="v">113</div><div class="l">龙游特种纸产业链企业 · 其中 61 家是中小微</div><div class="n">来源：龙游县经信局公开答复 / 公开产业报道</div></div>
+        <div><div class="v">131.6 亿</div><div class="l">2023 年规上特种纸企业总产值，约占全县工业产值 1/3</div><div class="n">来源：公开产业报道</div></div>
+        <div><div class="v">4–8 小时</div><div class="l">单次非计划停机 · 估算损失 3–10 万元</div><div class="n">口径：访谈与公开资料推算，非实测</div></div>
+      </div>
+    </div>
+  </div>
+  <p class="quote" style="margin-top:34px">从"老师傅脑子里的经验"到"工人当场能用的答案"之间，没有一条既可信又可积累的路径。
+    <small>这就是产品存在的唯一理由</small></p>
+</section>
+
+<section>
+  <div class="sec-head"><span class="sec-num">03</span><h2>产品：三条黄金路径</h2></div>
+  <div class="grid g3" style="margin-bottom:30px">
+    <div class="path"><div class="idx">01</div><div><h3>拍照诊断</h3><p>上传缺陷照片，选工序与纸种，90 秒内得到候选原因、证据链、排查顺序与处置单。</p></div></div>
+    <div class="path"><div class="idx">02</div><div><h3>语音追问</h3><p>方言提问，先澄清前提再回答。它不急着给答案，先确认"是不是这批涂料"。</p></div></div>
+    <div class="path"><div class="idx">03</div><div><h3>回填闭环</h3><p>处置完回填一句，知识卡版本 +1，置信度更新，未命中的原因进入待补队列。</p></div></div>
+  </div>
+
+  <div class="mock">
+    <div class="mock-bar"><i></i><i></i><i></i><span>老师傅 · 工作台 / 操作工视角</span></div>
+    <div class="mock-body">
+      <div class="q">"这批装饰原纸表面有白点，是不是涂料的问题啦？"
+        <small>语音 · 衢州方言 · 已转文字 · 置信度 0.91</small></div>
+      <p style="font-size:13.5px;color:#6f665f;margin:0 0 6px">先确认一个前提：这批涂料是今天新开的桶吗？如果是，先按下面顺序查。</p>
+      <div class="cand"><span class="pct">62%</span><span class="name">涂料颗粒团聚</span><span class="cite">WO-2311-047</span><span class="cite">WO-2403-112</span></div>
+      <div class="cand"><span class="pct">24%</span><span class="name">刮刀磨损</span><span class="cite">PC-TB-08 #3</span></div>
+      <div class="cand"><span class="pct">14%</span><span class="name">烘缸表面结垢</span><span class="cite">WO-2308-019</span></div>
+      <ol class="steps">
+        <li>停机目视刮刀刃口 · 约 5 分钟 · 可逆</li>
+        <li>检查涂料过滤网压差 · 约 10 分钟</li>
+        <li>烘缸表面取样 · 约 40 分钟 · 需停机</li>
+      </ol>
+      <div class="refuse"><b>故意问一个知识库没有的问题：</b>"这批白点是不是供应商换了分散剂导致的？"<br>
+      → 系统拒答："知识库里没有这条依据，已转张师傅，并生成一张待补知识卡。"</div>
+    </div>
+  </div>
+
+  <div class="three" style="margin-top:26px">
+    <div><div class="big">有依据才回答</div><p>每条结论挂到工艺卡、历史工单或老师傅口述记录，可点开原文。不是提示词要求，是流程上不允许没有 citation_id。</p></div>
+    <div><div class="big">没依据就转人工</div><p>检索不到就明确拒答，并把缺口变成待补知识卡。拒答率是一等公民指标，目标 ≥ 90%。</p></div>
+    <div><div class="big">权限决定颗粒度</div><p>工人看步骤，主管看参数，客户什么都看不到。检索前过滤、生成后脱敏、全量审计。</p></div>
+  </div>
+</section>
+
+<section>
+  <div class="sec-head"><span class="sec-num">04</span><h2>资产：知识卡</h2></div>
+  <div class="grid g2">
+    <div>
+      <p class="sub">知识卡不是一段文档，是结构化、可校验、可版本化的最小知识单元。它让经验可解释、可审计、可迁移、可进化。</p>
+      <ul class="clean">
+        <li><b>可解释</b>：每个概率都有来源，不是模型拍脑袋</li>
+        <li><b>可审计</b>：谁写的、谁审的、改过几版，全留痕</li>
+        <li><b>可迁移</b>：换厂只改 scope 与先验，结构不动</li>
+        <li><b>可进化</b>：工单回填调整先验，形成企业自己的经验曲线</li>
+      </ul>
+      <p style="margin-top:18px;font-size:13.5px;color:#6f665f">五个 Skill 可拆开卖：<span class="mono">capture / see / ask / diagnose / act</span>。工厂可以只买诊断，协会可以只买经验采集。</p>
+    </div>
+    <div class="mock">
+      <div class="mock-bar"><i></i><i></i><i></i><span>kc_tb_0012.json · v3 · approved</span></div>
+      <div class="mock-body" style="font-family:'SF Mono',ui-monospace,monospace;font-size:11.5px;line-height:1.85;color:#3d3733;white-space:pre-wrap">{
+  "scope": { "process": "涂布",
+             "machine": "TB-08",
+             "paper": "装饰原纸" },
+  "symptom": "0.3-0.8mm 白点 · 条带状 · 靠操作侧",
+  "causes": [
+    { "name": "涂料颗粒团聚", "prior": 0.62 },
+    { "name": "刮刀磨损",     "prior": 0.24 },
+    { "name": "烘缸结垢",     "prior": 0.14 }
+  ],
+  "checks": [ "目视刮刀 5min", "滤网压差 10min",
+              "烘缸取样 40min" ],
+  "contra": [ "白点边缘发虚 → 优先查水分" ],
+  "source": { "type": "master_oral",
+              "by": "张师傅(38年)" },
+  "confidence": 0.78
+}</div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="sec-head"><span class="sec-num">05</span><h2>24 小时，怎么活下来</h2></div>
+  <p class="sub">决赛是 12 月 17–18 日衢州线下 24 小时。赢的不是功能最多的队伍，是第 20 小时还能稳定演示的队伍。所以：<b>H19 之后不再加功能，只修 bug。</b></p>
+  <div class="timeline">
+    <div class="tl"><div class="t">H0–H6</div><h3>地基</h3><p>离线包、三个知识包、schema、检索与强制引用校验。断网也能跑通一条路径。</p></div>
+    <div class="tl"><div class="t">H6–H13</div><h3>入口</h3><p>拍照判读 + 拍摄质量校验 + 方言语音 + 主动澄清。模糊照片要被拒并给指引。</p></div>
+    <div class="tl"><div class="t">H13–H19</div><h3>闭环</h3><p>权限过滤、脱敏、审计、处置单生成、回填后知识卡 version +1。</p></div>
+    <div class="tl"><div class="t">H19–H24</div><h3>稳住</h3><p>60 条案例跑分、修最致命的 2 个问题、三次完整彩排。单次演示 ≤ 4 分 30 秒。</p></div>
+  </div>
+  <p style="margin-top:22px;font-size:13.5px;color:#6f665f">五人分工里，第五人专职数据与评测——多数队伍会在最后 4 小时才发现"演示数据不对"，而那时已经没有时间了。</p>
+</section>
+
+<section>
+  <div class="sec-head"><span class="sec-num">06</span><h2>价值与商业</h2></div>
+  <div class="grid g4">
+    <div class="card"><div class="num">UNIT ECONOMICS</div><h3>1.98 万 / 年</h3><p>单条产线年费。避免一次停机事故即回本。</p></div>
+    <div class="card"><div class="num">SOM · 龙游</div><h3>约 242 万 / 年</h3><p>61 家 × 平均 2 条产线 × 1.98 万。</p></div>
+    <div class="card"><div class="num">EXPAND · 衢州</div><h3>约 700 万 / 年</h3><p>特种纸 + 氟化工 + 锂电 + 江山木门。</p></div>
+    <div class="card"><div class="num">ZHEJIANG</div><h3>约 2.4 亿 / 年</h3><p>按 10 个龙游量级产业集群估算。</p></div>
+  </div>
+  <p style="margin-top:18px;font-size:12.5px;color:#6f665f">测算口径：企业数量来自公开资料；产线数与付费意愿为假设，决赛前以真实访谈替换。不把估算包装成事实。</p>
+
+  <div class="grid g2" style="margin-top:30px">
+    <div>
+      <h3>冷启动四条路</h3>
+      <ul class="clean">
+        <li><b>借赛事</b>：决赛现场就有本地企业与园区的人</li>
+        <li><b>借协会</b>：龙游特种纸产业中枢做信任中介</li>
+        <li><b>借老师傅</b>：先服务 3 位退休师傅，做公开行业知识卡</li>
+        <li><b>借平台</b>：上架帝王蟹 SkillHub 与企业技能市场</li>
+      </ul>
+    </div>
+    <div>
+      <h3>和帝王蟹的能力对齐</h3>
+      <ul class="clean">
+        <li><b>知识沉淀</b>：知识卡就是企业资产的载体</li>
+        <li><b>权限管控</b>：角色 × 知识域双维过滤</li>
+        <li><b>审计留痕</b>：每次问答可导出，满足质量与合规</li>
+        <li><b>Skill 复用</b>：五个 Skill 可单独交付给不同工厂</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="sec-head"><span class="sec-num">07</span><h2>路演：三个必须被记住的点</h2></div>
+  <div class="grid g3">
+    <div class="card"><div class="num">TRUST</div><h3>有依据才回答，<br>没依据就转人工</h3><p>现场故意问一个没有依据的问题，让系统拒答。</p></div>
+    <div class="card"><div class="num">BOUNDARY</div><h3>同一个问题，<br>工人和主管答案不同</h3><p>一分钟的权限对比演示，胜过十分钟架构。</p></div>
+    <div class="card"><div class="num">WHY</div><h3>老师傅会退休，<br>手艺不该退休</h3><p>开场是一个人，收尾是一个行业。</p></div>
+  </div>
+</section>
+
+<footer>
+  <p class="quote" style="margin-bottom:34px">不是让 AI 替代老师傅，<br>是让老师傅的经验在退休之后还能上班。
+    <small>老师傅 · 制造业经验智能体 / 赛道 D</small></p>
+  <div class="row">
+    <div class="sig">
+      赛制与赛道信息来自赛事官方页面（offmap-x.ai，2026-11-27 访问）；龙游产业数据来自龙游县经信局公开答复与公开报道；停机损失与付费意愿为估算，标注口径，不作为已验证事实。本页为产品方案提案，不承诺任何未发生的合作与收入。
+    </div>
+    <div class="stamp">衢州 · 2026.12</div>
+  </div>
+</footer>
+
+</div>
+</body>
+</html>
